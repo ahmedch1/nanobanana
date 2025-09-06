@@ -8,17 +8,15 @@ from io import BytesIO
 # Configure the client with your API key
 client = genai.Client()
 
-prompt = """Using the image of the cat, create a photorealistic,
-street-level view of the cat walking along a sidewalk in a
-New York City neighborhood, with the blurred legs of pedestrians
-and yellow cabs passing by in the background."""
+prompt = "Make the man wear this t-shirt. Leave the background unchanged."
 
-image=Image.open("cat.png")
+image1 = Image.open("man.jpg")
+image2 = Image.open("tshirt.jpg")
 
 # Call the API to generate content
 response = client.models.generate_content(
     model="models/gemini-2.5-flash-image-preview",
-    contents=[prompt,image]
+    contents=[prompt,image1,image2]
 )
 
 # The response can contain both text and image data.
@@ -28,4 +26,4 @@ for part in response.candidates[0].content.parts:
         print(part.text)
     elif part.inline_data is not None:
         image = Image.open(BytesIO(part.inline_data.data))
-        image.save("cat2.png")
+        image.save("man-with-tshirt.png")
