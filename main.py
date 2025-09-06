@@ -8,22 +8,34 @@ from io import BytesIO
 # Configure the client with your API key
 client = genai.Client()
 
-prompt = "Restore and colorize this image from 1900"
-
-image = Image.open("kairouan.jpg")
-
-
-# Call the API to generate content
-response = client.models.generate_content(
-    model="models/gemini-2.5-flash-image-preview",
-    contents=[prompt,image]
+# Create a chat
+chat = client.chats.create(
+    model="gemini-2.5-flash-image-preview"
 )
 
-# The response can contain both text and image data.
-# Iterate through the parts to find and save the image.
-for part in response.candidates[0].content.parts:
-    if part.text is not None:
-        print(part.text)
-    elif part.inline_data is not None:
+# Send the first message with the image and prompt
+response1 = chat.send_message(
+    [
+        "Change the cat to a siamese cat, leave everything else the same",
+        Image.open("cat.png"),
+    ]
+)
+
+# Save the first image of the bengal cat
+for part in response1.candidates[0].content.parts:
+    if hasattr(part, "inline_data") and part.inline_data is not None:
         image = Image.open(BytesIO(part.inline_data.data))
-        image.save("kairouan-restored.png")
+        image.save("siamese_cat.png")
+        break  # Save only the first image
+
+# Send the second message to further modify the image
+response2 = chat.send_message("The cat should wear a funny party hat")
+
+# Save the second image of the bengal cat with a funny party hat
+for part in response2.candidates[0].content.parts:
+    if hasattr(part, "inline_data") and part.inline_data is not None:
+        image = Image.open(BytesIO(part.inline_data.data))
+        image.save("siamese_funny_cat.png")
+        break  # Save only the first image
+    elif hasattr(part, "text") and part.text is not None:
+        print(part.text)
